@@ -21,7 +21,7 @@ from unittest import TestCase
 from deepdiff import DeepDiff
 from multiprocessing.dummy import Pool as ThreadPool
 
-from tests.st.utils.utils import (get_ip, ETCD_SCHEME, ETCD_CA, ETCD_CERT,
+from tests.st.utils.utils import (TestWithHooks, get_ip, ETCD_SCHEME, ETCD_CA, ETCD_CERT,
                                   ETCD_KEY, debug_failures, ETCD_HOSTNAME_SSL)
 
 HOST_IPV6 = get_ip(v6=True)
@@ -35,7 +35,7 @@ sh_logger = logging.getLogger("sh")
 sh_logger.setLevel(level=logging.CRITICAL)
 
 
-class TestBase(TestCase):
+class TestBase(TestWithHooks):
     """
     Base class for test-wide methods.
     """
