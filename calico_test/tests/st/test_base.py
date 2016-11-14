@@ -40,19 +40,20 @@ class TestBase(TestWithHooks):
     Base class for test-wide methods.
     """
 
-    def setUp(self):
+    @classmethod
+    def setUpClass(cls):
         """
-        Clean up before every test.
+        Clean up before every testrun.
         """
-        self.ip = HOST_IPV4
+        cls.ip = HOST_IPV4
 
         # Delete /calico if it exists. This ensures each test has an empty data
         # store at start of day.
-        self.curl_etcd("calico", options=["-XDELETE"])
+        cls.curl_etcd("calico", options=["-XDELETE"])
 
         # Disable Usage Reporting to usage.projectcalico.org
         # We want to avoid polluting analytics data with unit test noise
-        self.curl_etcd("calico/v1/config/UsageReportingEnabled",
+        cls.curl_etcd("calico/v1/config/UsageReportingEnabled",
                        options=["-XPUT -d value=False"])
 
         # Log a newline to ensure that the first log appears on its own line.
@@ -213,7 +214,8 @@ class TestBase(TestWithHooks):
         assert False not in results, ("Connectivity check error!\r\n"
                                       "Results:\r\n %s\r\n" % diagstring)
 
-    def curl_etcd(self, path, options=None, recursive=True):
+    @staticmethod
+    def curl_etcd(path, options=None, recursive=True):
         """
         Perform a curl to etcd, returning JSON decoded response.
         :param path:  The key path to query
@@ -234,7 +236,7 @@ class TestBase(TestWithHooks):
         else:
             rc = subprocess.check_output(
                 "curl -sL http://%s:2379/v2/keys/%s?recursive=%s %s"
-                % (self.ip, path, str(recursive).lower(), " ".join(options)),
+                % (HOST_IPV4, path, str(recursive).lower(), " ".join(options)),
                 shell=True)
 
         return json.loads(rc.strip())
