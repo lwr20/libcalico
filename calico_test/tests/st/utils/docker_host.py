@@ -418,4 +418,4 @@ class DockerHost(object):
         :param data: string, the data to put inthe file
         :return: Return code of execute operation.
         """
-        return self.execute("cat << EOF > %s\n%s" % (filename, data))
+        return self.execute("cat << EOF > %s\n%s\nEOF\n" % (filename, data))
