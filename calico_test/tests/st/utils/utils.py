@@ -133,13 +133,30 @@ class TestWithHooks(unittest.TestCase):
 
     @classmethod
     def get_diags(cls):
+        logfiles = [
+            "/var/log/calico/bird/current",
+            "/var/log/calico/bird6/current",
+            "/var/log/calico/confd/current",
+            "/var/log/calico/felix/current",
+            "/var/log/calico/libnetwork/current",
+        ]
         if cls.hosts:
             for host in cls.hosts:
                 if host.dind:
-                    logger.debug("Docker logs from %s (%s):\r\n%s",
-                                 host.name,
-                                 host.ip,
-                                 host.execute("docker logs calico-node"))
+                    try:
+                        logger.debug("Docker logs from %s (%s):\r\n%s",
+                                     host.name,
+                                     host.ip,
+                                     host.execute("docker logs calico-node"))
+                    except CommandExecError:
+                        logger.info("Error getting docker logs from calico-node")
+                for logfile in logfiles:
+                    try:
+                        host.execute("cat %s" % logfile)
+                    except CommandExecError:
+                        logger.info("*" * 80)
+                        logger.info("Getting logs from %s", logfile)
+                        logger.info("Error getting %s", logfile)
 
 
 def get_ip(v6=False):
