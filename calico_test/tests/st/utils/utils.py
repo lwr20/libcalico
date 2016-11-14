@@ -104,7 +104,7 @@ class ResultsWithHooks(type):
     """
     def __new__(cls, name, bases, dct):
         for attr, value in dct.iteritems():
-            if attr.startswith("test_"):
+            if attr.startswith("test_") and hasattr(value, '__module__'):
                 dct[attr] = decorate_with_hooks(value)
         return super(ResultsWithHooks, cls).__new__(cls, name, bases, dct)
 
@@ -128,7 +128,18 @@ class TestWithHooks(unittest.TestCase):
         """
         The test raised an exception.
         """
+        cls.get_diags()
         logger.info("Test failed.")
+
+    @classmethod
+    def get_diags(cls):
+        if cls.hosts:
+            for host in cls.hosts:
+                if host.dind:
+                    logger.debug("Docker logs from %s (%s):\r\n%s",
+                                 host.name,
+                                 host.ip,
+                                 host.execute("docker logs calico-node"))
 
 
 def get_ip(v6=False):
