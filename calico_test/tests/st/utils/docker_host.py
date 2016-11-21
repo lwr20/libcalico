@@ -19,6 +19,8 @@ from functools import partial
 
 from utils import get_ip, log_and_run, retry_until_success, ETCD_SCHEME, \
     ETCD_CA, ETCD_KEY, ETCD_CERT, ETCD_HOSTNAME_SSL
+from tests.st.utils.exceptions import CommandExecError
+
 from workload import Workload
 from network import DockerNetwork
 
@@ -367,6 +369,13 @@ class DockerHost(object):
         :param subnet: The subnet IP pool to assign IPs from.
         :return: A DockerNetwork object.
         """
+        try:
+            self.execute("docker network inspect %s" % name)
+            # Network exists - delete it
+            self.execute("docker network rm " + name)
+        except CommandExecError:
+            # Network didn't exist, no problem.
+            pass
         nw = DockerNetwork(self, name, driver=driver, ipam_driver=ipam_driver,
                            subnet=subnet)
 

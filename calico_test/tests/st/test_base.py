@@ -21,6 +21,7 @@ from unittest import TestCase
 from deepdiff import DeepDiff
 from multiprocessing.dummy import Pool as ThreadPool
 
+from exceptions import CommandExecError
 from tests.st.utils.utils import (TestWithHooks, get_ip, ETCD_SCHEME, ETCD_CA, ETCD_CERT,
                                   ETCD_KEY, debug_failures, ETCD_HOSTNAME_SSL)
 
@@ -45,6 +46,7 @@ class TestBase(TestWithHooks):
         """
         Clean up before every testrun.
         """
+        logger.debug("Cleaning up at start of testrun")
         cls.ip = HOST_IPV4
 
         # Delete /calico if it exists. This ensures each test has an empty data
@@ -302,3 +304,30 @@ class TestBase(TestWithHooks):
         Assert true, wrapped to allow debugging of failures.
         """
         assert b
+
+    @classmethod
+    def get_diags(cls):
+        logfiles = [
+            "/var/log/calico/bird/current",
+            "/var/log/calico/bird6/current",
+            "/var/log/calico/confd/current",
+            "/var/log/calico/felix/current",
+            "/var/log/calico/libnetwork/current",
+        ]
+        if cls.hosts:
+            for host in cls.hosts:
+                if host.dind:
+                    try:
+                        logger.debug("Docker logs from %s (%s):\r\n%s",
+                                     host.name,
+                                     host.ip,
+                                     host.execute("docker logs calico-node"))
+                    except CommandExecError:
+                        logger.info("Error getting docker logs from calico-node")
+                for logfile in logfiles:
+                    try:
+                        host.execute("cat %s" % logfile)
+                    except CommandExecError:
+                        logger.info("*" * 80)
+                        logger.info("Getting logs from %s", logfile)
+                        logger.info("Error getting %s", logfile)
