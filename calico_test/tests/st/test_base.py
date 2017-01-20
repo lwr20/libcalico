@@ -29,7 +29,7 @@ HOST_IPV6 = get_ip(v6=True)
 HOST_IPV4 = get_ip()
 FORMAT_STRING = '# %(asctime)s [%(levelname)s][%(process)s/%(thread)x] ' \
                 '%(name)s %(lineno)d: %(message)s'
-logging.basicConfig(level=logging.DEBUG, format=FORMAT_STRING, datefmt='%H:%M:%S')
+logging.basicConfig(level=logging.DEBUG, format=FORMAT_STRING)
 logger = logging.getLogger(__name__)
 
 # Disable spammy logging from the sh module
